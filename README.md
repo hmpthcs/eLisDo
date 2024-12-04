@@ -5,6 +5,8 @@ Listens for user-configured input events, then triggers user-configured actions.
 
 WARNING: work in progress; probably doesn't funciton as intended. Issues, pull requests and commentary welcome. 
 
+
+
 ## Why
 ### One use case: Pinenote display driver parameters
 With an e-ink device, you get fast black-and-white-only screen refreshes or slow full 16-level grayscale refreshes (or somewhere in between with 4-levels of grayscale).
@@ -14,6 +16,8 @@ Here, we allow the user to set up automatic triggers that change modes when need
 
 ### Further pursuits
 Ultimately, a desktop environment / compositor / window manager ought to integrate these functionalities. After learning through experiments with a detached daemon, the next steps might involve running bits of this code within a wayland compositor. This would allow better thread prioritization,  predictability and control over timing with respect to frame redraws and damage tracking. In addition, an API can be exposed in the form of a wayland protocol extension, allowing compositors to optimize display interactions for eink-aware applications.
+
+
 
 ## How
 
@@ -32,12 +36,13 @@ Adds internal logic, enabling  things like touch gestures, keyboard chords, and 
 2nd  [ hardware | filesystem event ]	→	exec [ shell script | binary ]
 
 
-### IMPLEMENTATION
-Implementation I: libinput
 
-#### Written in rust
-Input listener: all lifted from smithay/input-rs
-EPD actions: all lifted from m-weigand/pinenote-dbus-service
+### IMPLEMENTATION
+#### Implementation I: libinput
+
+- Written in rust
+- Input listener: all lifted from smithay/input-rs
+- EPD actions: all lifted from m-weigand/pinenote-dbus-service
 
 #### Implementation II: evdev 
 Just an idea…
@@ -49,11 +54,15 @@ Working rudimentary / POC Libinput implementation. No Evdev version yet…
 
 ### Events available:
 - [X] Stylus proximity in/out
-
 - [X] Touch down/up/motion/frame
 
 ### Actions available:
-- [X] Set rockchip-ebc module parameters
+- [ ] Set + get rockchip-ebc module parameters
+  - [X] Default waveform
+  - [X] Refresh waveform
+  - [X] BW mode
+  - [X] Auto-refresh
+- [ ] Trigger fullscreen refresh 
 
 ### Todo:
 - [ ] Config file: 
