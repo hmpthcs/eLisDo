@@ -1,0 +1,246 @@
+use libc;
+use input::{Libinput, LibinputInterface};
+use libc::{O_RDONLY, O_RDWR, O_WRONLY};
+use std::fs::{File, OpenOptions};
+use std::io::{BufRead, BufReader, Write, Read};
+use std::os::unix::{fs::OpenOptionsExt, io::OwnedFd, io::AsRawFd};
+use std::path::Path;
+use std::time::Duration;
+use std::thread;
+use std::error::Error;
+//use nix::ioctl_readwrite_bad;
+
+use input::event::keyboard::KeyboardEventTrait;
+
+use input::Event;
+use input::Event::Tablet;
+use input::event::tablet_tool::{TabletToolProximityEvent, TabletToolEventTrait};
+use input::event::TabletToolEvent::Proximity;
+
+use input::Event::Touch;
+use input::event::TouchEvent;
+use input::event::touch::TouchEventTrait;
+use input::event::TouchEvent::{Down, Up};
+
+//mod ebc_ioctl;
+mod sys_handler;
+
+//use input::event::tablet_tool::TabletToolEventTrait;
+//use input::tablet_tool::TabletToolProximityEvent;
+//use input::event::tablet_tool::TabletTool;
+
+//struct EbcObject {
+//}
+//
+//
+//const DRM_IOCTL_ROCKCHIP_EBC_GLOBAL_REFRESH: u64 = 3221316672;
+//ioctl_readwrite_bad!(ebc_ioctl, DRM_IOCTL_ROCKCHIP_EBC_GLOBAL_REFRESH, libc::c_uchar);
+
+//fn trigger_global_refresh() {
+//    println!("Hello, world!");
+//    let ebc_device = "/dev/dri/by-path/platform-fdec0000.ebc-card";
+//    let file = OpenOptions::new()
+//        .read(true)
+//        .write(true)
+//        .custom_flags(libc::O_NONBLOCK)
+//        .open(ebc_device).unwrap();
+//
+//    let mut arg: u8 = 1;
+//    let arg_ptr: *mut u8 = &mut arg;
+//    unsafe{
+//        let result = ebc_ioctl(file.as_raw_fd(), arg_ptr);
+//       match result {
+//            Err(why) => panic!("{:?}", why),
+//            Ok(ret) => println!("{}", ret),
+//        }
+//    }
+//}
+
+
+struct Interface;
+
+
+//const DRM_IOCTL_ROCKCHIP_EBC_GLOBAL_REFRESH: u64 = 3221316672;
+//ioctl_readwrite_bad!(ebc_ioctl, DRM_IOCTL_ROCKCHIP_EBC_GLOBAL_REFRESH, libc::c_uchar);
+
+impl LibinputInterface for Interface {
+    fn open_restricted(&mut self, path: &Path, flags: i32) -> Result<OwnedFd, i32> {
+        OpenOptions::new()
+            .custom_flags(flags)
+            .read(/*(flags & O_RDONLY != 0) |*/ (flags & O_RDWR != 0))
+            .write((flags & O_WRONLY != 0) | (flags & O_RDWR != 0))
+            .open(path)
+            .map(|file| file.into())
+            .map_err(|err| err.raw_os_error().unwrap())
+    }
+    fn close_restricted(&mut self, fd: OwnedFd) {
+        drop(File::from(fd));
+    }
+}
+
+fn bw_draw_mode() {}
+fn dither_draw_mode() {}
+fn bw_fast_mode() {}
+fn hq_full_mode() {}
+fn hq_partial_mode() {}
+fn fourtone_mode() {}
+
+
+fn handle_tablet_event(event:TabletToolProximityEvent){
+         let cur_bw_mode = sys_handler::get_bw_mode();
+         let cur_def_wf = sys_handler::get_default_waveform();
+    let proximity = event.proximity_state();
+    match proximity {
+         input::event::tablet_tool::ProximityState::In => {
+//            println!("Proximity IN {:?}", proximity);
+//               let cur_bw_mode = sys_handler::get_bw_mode();
+                if cur_bw_mode != 2 {
+                    println!{"Current BW mode is {}", cur_bw_mode};
+                    sys_handler::set_bw_mode(2);
+                    println!{"New BW mode is 2"}
+                }
+//                let cur_def_wf = sys_handler::get_default_waveform();
+                if cur_def_wf !=1 {
+                    println!{"Current default waveform is {}", cur_def_wf};
+                    sys_handler::set_default_waveform(1)
+                }
+        }   
+        input::event::tablet_tool::ProximityState::Out => {
+//            println!("Proximity OUT {:?}", proximity);
+//            let cur_bw_mode = sys_handler::get_bw_mode();
+            let interval = Duration::milliseconds(1000);
+//create timer
+            let mut timer = Timer::new().unwrap;
+//create oneshot notification
+            let oneshot: mpsc::Receiver<()> = timer.oneshot(interval);
+//block thread until notification arrives
+            let _ = oneshot.recv();
+            
+            sys_handler::set_bw_mode(0);
+            sys_handler::set_default_waveform(7)
+
+        }
+        _ => {}
+    
+    //    let down = proximity_state > 0.0;
+    }
+}
+
+fn handle_touch_event(event:TouchEvent) {  
+        match event {
+//            TouchEvent::Down(_) => {
+            TouchEvent::Motion(_) => {
+//                println!("Touch was MOTION");
+                let cur_bw_mode = sys_handler::get_bw_mode();
+                if cur_bw_mode != 2 {
+                    println!{"Current BW mode is {}", cur_bw_mode};
+                    sys_handler::set_bw_mode(2);
+                    println!{"New BW mode is 2"}
+                }
+                let cur_def_wf = sys_handler::get_default_waveform();
+                if cur_def_wf !=2 {
+                    println!{"Current default waveform is {}", cur_def_wf};
+                    sys_handler::set_default_waveform(2);
+                    println!{"New default waveform is 2"}
+                }
+            }
+            TouchEvent::Up(_) => {
+//                TouchEvent::Frame(_) => {
+                      println!("Touch was UP");
+//                sys_handler::set_bw_mode(0);
+                     thread::sleep(Duration::from_millis(500));
+                     sys_handler::set_default_waveform(7);
+                    thread::sleep(Duration::from_millis(100));
+                    sys_handler::set_bw_mode(0);
+                    sys_handler::set_refresh_waveform(7);
+//                    use ebc_ioctl::trigger_global_refresh();
+                    sys_handler::set_refresh_waveform(4)
+
+            }
+            _ => {}
+        }
+    }  
+
+fn main() {
+    let mut input = Libinput::new_with_udev(Interface);
+    input.udev_assign_seat("seat0").unwrap();
+    loop {
+        input.dispatch().unwrap();
+        let 
+        for event in &mut input {
+            match event {
+                Event::Tablet(Proximity(event)) => {
+                    handle_tablet_event(event);
+                },
+                Event::Touch(event) => {
+                    handle_touch_event(event);
+                },
+                _ => {}
+            }    
+        }
+        std::thread::sleep(Duration::from_millis(5));
+    }
+}
+// //            if let Tablet(Proximity(event)) = event {
+// //             handle_tablet_event(event);
+// //               }
+//            if let Touch(event) = event {
+//                handle_touch_event(event);
+//                }
+//            }
+//        }
+//    }   
+/*
+fn handle_tablet_event(event:TabletToolProximityEvent){
+    let proximity = event.proximity_state();
+    match proximity {
+         input::event::tablet_tool::ProximityState::In => {
+            println!("Proximity IN {:?}", proximity);
+        }   
+        input::event::tablet_tool::ProximityState::Out => {
+            println!("Proximity OUT {:?}", proximity);
+        }
+        _ => {}
+    
+    //    let down = proximity_state > 0.0;
+    }
+}
+
+fn handle_touch_event(event:TouchEvent) {  
+        match event {
+            TouchEvent::Down(_) => {
+                println!("Touch was DOWN");
+                sys_handler::set_bw_mode(2);
+                sys_handler::set_default_waveform(2)
+            }
+            TouchEvent::Up(_) => {
+                println!("Touch was UP");
+                sys_handler::set_bw_mode(0);
+                sys_handler::set_default_waveform(7)
+            }
+            _ => {}
+        }
+    }  
+*/
+//        println!("\nTouchDown {:?}", touch);
+
+//            match event {
+//                input::Event::Tablet(proximity) => {
+//                    println!("\nProximity {} {:?}\n",
+//                    &proximity.proximity(),
+//                    proximity.Proximity_state()
+//                    )
+//                },
+//                input::Event::Keyboard(key) => {
+//                    println!("\nKey {} {:?}\n",
+//                    &key.key(),
+//                    key.key_state()
+//                    )
+//                },
+//                _ => println!("wtf")
+//            }
+//        }
+//    }
+//}
+
+
