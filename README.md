@@ -1,7 +1,9 @@
 # eLisDo
 
 ## What
-Listens for user-configured input events, then triggers user-configured actions. Maybe will listen for window-manager events in the future, too.
+Listens for user-configured input events, then triggers user-configured actions. Maybe will listen for window-manager events in the future, too. Seeking quickest and most reliable means for doing so under wayland, possibly framebuffer later on. Overarching goals include finding creative ways to to smoothly transition from HQ to fast waveforms and back.
+
+WARNING: work in progress; probably doesn't funciton as intended. Issues, pull requests and commentary welcome. 
 
 ## Why
 ### One use case: Pinenote display driver parameters
@@ -43,7 +45,7 @@ Can’t figure out evdev-rs stuff… halp
 
 
 ## Status 
-Working Libinput implementation. No Evdev version yet…
+Working rudimentary / POC Libinput implementation. No Evdev version yet…
 
 ### Events available:
 - [X] Stylus proximity in/out
