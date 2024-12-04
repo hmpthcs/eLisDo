@@ -12,16 +12,17 @@ Here, we allow the user to set up automatic triggers that change modes when need
 
 ### Further pursuits
 Ultimately, a desktop environment / compositor / window manager ought to integrate these functionalities. After learning through experiments with a detached daemon, the next steps might involve running bits of this code within a wayland compositor. This would allow better thread prioritization,  predictability and control over timing with respect to frame redraws and damage tracking. In addition, an API can be exposed in the form of a wayland protocol extension, allowing compositors to optimize display interactions for eink-aware applications.
-How
 
-## CORE CONCEPT
-### Simple events first
+## How
+
+### CORE CONCEPT
+#### Simple events first
 Bare-bones passthrough. One triggering event:one action. Optimize and test speed here.
 
 
 [ hardware | filesystem event ]		→	exec [ shell script | binary ]
 
-### Complex events next
+#### Complex events next
 Adds internal logic, enabling  things like touch gestures, keyboard chords, and more:
 
 
@@ -29,14 +30,14 @@ Adds internal logic, enabling  things like touch gestures, keyboard chords, and 
 2nd  [ hardware | filesystem event ]	→	exec [ shell script | binary ]
 
 
-## IMPLEMENTATION
+### IMPLEMENTATION
 Implementation I: libinput
 
-### Written in rust
+#### Written in rust
 Input listener: all lifted from smithay/input-rs
 EPD actions: all lifted from m-weigand/pinenote-dbus-service
 
-### Implementation II: evdev 
+#### Implementation II: evdev 
 Just an idea…
 Can’t figure out evdev-rs stuff… halp
 
