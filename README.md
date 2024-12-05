@@ -3,7 +3,7 @@
 ## What
 Listens for user-configured input events, then triggers user-configured actions. Maybe will listen for window-manager events in the future, too. Seeking quickest and most reliable means for doing so under wayland, possibly framebuffer later on. Overarching goals include finding creative ways to to smoothly transition from HQ to fast waveforms and back.
 
-WARNING: work in progress; probably doesn't funciton as intended. Issues, pull requests and commentary welcome. 
+WARNING: work in progress; probably doesn't function as intended. May expand yer mind. Issues, pull requests and commentary welcome. 
 
 
 
